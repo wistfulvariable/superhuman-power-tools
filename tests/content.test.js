@@ -82,6 +82,14 @@ describe("content.js — loading", () => {
     );
   });
 
+  test("injects CSS that hides .CommentInput-container.isHidden", () => {
+    const styleEl = document.querySelector("style");
+    expect(styleEl).not.toBeNull();
+    expect(styleEl.textContent).toContain(".CommentInput-container.isHidden");
+    expect(styleEl.textContent).toContain("display: none !important");
+    expect(styleEl.textContent).toContain("pointer-events: none !important");
+  });
+
   test("exposes getExtensionErrorReports on window", () => {
     expect(typeof window.getExtensionErrorReports).toBe("function");
   });

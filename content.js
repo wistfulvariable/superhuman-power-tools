@@ -6,6 +6,22 @@
 console.log("Superhuman Power Tools loaded!");
 
 // ============================================================================
+// FEATURE 3: Hide "Comment & Share Conversation" hover popup
+// The .CommentInput-container.isHidden element triggers a tether-positioned
+// tooltip when the mouse hovers near the bottom of an email thread.
+// We force it to stay invisible and ignore pointer events.
+// ============================================================================
+
+const style = document.createElement("style");
+style.textContent = `
+  .CommentInput-container.isHidden {
+    display: none !important;
+    pointer-events: none !important;
+  }
+`;
+document.documentElement.appendChild(style);
+
+// ============================================================================
 // FEATURE 1: Popup Auto-Clicker (Focus-Safe)
 // Automatically dismisses subject-line warning popups in Superhuman.
 // Polls every 150ms for the alert button, clicks it, then enters a 3s cooldown.

@@ -1,9 +1,10 @@
 # Superhuman Power Tools
 
-A Chrome extension that adds two quality-of-life features to [Superhuman](https://mail.superhuman.com):
+A Chrome extension that adds three quality-of-life features to [Superhuman](https://mail.superhuman.com):
 
 1. **Popup Auto-Clicker** — Automatically dismisses "SEND ANYWAY" and "SCHEDULE ANYWAY" confirmation popups so you never have to click them manually.
 2. **Gmail Filter Creation** — One-click Gmail filter creation from the email you're viewing. Press **Alt+G** (or click the toolbar icon) and Gmail opens with the sender and subject pre-filled as a search query, ready to turn into a filter.
+3. **Comment Popup Blocker** — Hides the "Comment & Share Conversation" hover popup that appears when your mouse drifts to the bottom of an email thread.
 
 ## Installation
 
@@ -42,6 +43,10 @@ After triggering, a badge briefly appears on the toolbar icon:
 | OK    | Green  | Data extracted, Gmail opened                         |
 | ---   | Orange | No sender or subject found (email may not be open)   |
 | ERR   | Red    | Content script not loaded (not on Superhuman)        |
+
+### Comment Popup Blocker (automatic)
+
+No action required. The "Comment & Share Conversation" popup that normally appears when your mouse hovers near the bottom of an email thread is permanently hidden via injected CSS. The underlying `.CommentInput-container.isHidden` element is forced to `display: none` with pointer events disabled so the hover trigger never fires.
 
 ## Debug API
 

@@ -1,9 +1,10 @@
 # Superhuman Power Tools — Project Rules
 
 ## Overview
-Chrome extension (Manifest V3) adding two features to mail.superhuman.com:
+Chrome extension (Manifest V3) adding three features to mail.superhuman.com:
 1. **Auto-Clicker**: Dismisses "SEND ANYWAY" / "SCHEDULE ANYWAY" popups automatically
 2. **Gmail Filter Creation**: Extracts sender/subject, opens Gmail with pre-populated search (Alt+G)
+3. **Comment Popup Blocker**: Hides "Comment & Share Conversation" hover popup via injected CSS
 
 ## File Map
 
@@ -11,7 +12,7 @@ Chrome extension (Manifest V3) adding two features to mail.superhuman.com:
 |------|---------|---------|
 | `manifest.json` | Chrome | Extension config, permissions, content script registration |
 | `background.js` | Service worker | Orchestrates filter creation: listens for shortcut/click, messages content script, stores data, opens Gmail tab |
-| `content.js` | mail.superhuman.com | **Two features**: (1) Auto-clicker polling loop + focus-safe click (2) Email data extraction for filters |
+| `content.js` | mail.superhuman.com | **Three features**: (1) Comment popup blocker via CSS injection (2) Auto-clicker polling loop + focus-safe click (3) Email data extraction for filters |
 | `gmail-content.js` | mail.google.com | Reads stored filter data, builds search query, navigates Gmail SPA via hash |
 | `tests/content.test.js` | Node.js (Jest) | Unit tests for extractable logic |
 
@@ -19,6 +20,7 @@ Chrome extension (Manifest V3) adding two features to mail.superhuman.com:
 - `.Alert-action.selected` — The auto-click target button
 - `.ThreadPane-subject.isSelectable` / `[class*="ThreadPane-subject"]` — Email subject line
 - `.ContactPane-email` / `.ContactPane-compose-to-link` — Sender email address
+- `.CommentInput-container.isHidden` — Comment/share hover popup (hidden via CSS injection)
 - `input[aria-label="Search mail"]` — Gmail search box (used to detect Gmail readiness)
 
 ## Architecture Patterns
