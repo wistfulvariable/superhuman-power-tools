@@ -48,6 +48,14 @@ After triggering, a badge briefly appears on the toolbar icon:
 
 No action required. The "Comment & Share Conversation" popup that normally appears when your mouse hovers near the bottom of an email thread is permanently hidden via injected CSS. The underlying `.CommentInput-container.isHidden` element is forced to `display: none` with pointer events disabled so the hover trigger never fires.
 
+**Required Superhuman setting:** For the Comment Popup Blocker to work, you must enable **"Hide comment bar"** in Superhuman's settings:
+1. Open Superhuman and press `Cmd+K` (Mac) or `Ctrl+K` (Windows)
+2. Type "Settings" and select it
+3. Go to the **Advanced** section
+4. Enable **"Hide comment bar"**
+
+Without this setting enabled, Superhuman shows a different comment UI that this extension does not block.
+
 ## Debug API
 
 Open the browser DevTools console on any Superhuman page and call:
