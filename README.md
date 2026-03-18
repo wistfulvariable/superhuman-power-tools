@@ -1,133 +1,219 @@
 # Superhuman Power Tools
 
-A Chrome extension that adds three quality-of-life features to [Superhuman](https://mail.superhuman.com):
+A Chrome extension that adds productivity features to [Superhuman](https://mail.superhuman.com).
 
-1. **Popup Auto-Clicker** — Automatically dismisses "SEND ANYWAY" and "SCHEDULE ANYWAY" confirmation popups so you never have to click them manually.
-2. **Gmail Filter Creation** — One-click Gmail filter creation from the email you're viewing. Press **Alt+G** (or click the toolbar icon) and Gmail opens with the sender and subject pre-filled as a search query, ready to turn into a filter.
-3. **Comment Popup Blocker** — Hides the "Comment & Share Conversation" hover popup that appears when your mouse drifts to the bottom of an email thread.
+## Features
+
+### 1. Auto-Clicker (automatic)
+Automatically dismisses "SEND ANYWAY" and "SCHEDULE ANYWAY" confirmation popups so you never have to click them manually.
+
+### 2. Gmail Filter Creation (Alt+G)
+Press **Alt+G** on any email to jump to Gmail with a pre-populated search for creating filters based on the sender and subject.
+
+### 3. Comment Popup Blocker (automatic)
+Hides the annoying "Comment & Share Conversation" popup that appears when hovering over certain areas.
+
+### 4. Copy Email Button
+Adds a **Copy** button near the email header. Copies both HTML (for rich text editors) and plain text formats.
+
+### 5. AI Email Summarization
+Adds a **Summarize** button that uses Claude AI to analyze emails and provide:
+- **TL;DR**: 2-4 bullet point summary
+- **Key Takeaways**: Comprehensive analysis including response requirements, context, action items, and questions to consider
+
+---
 
 ## Installation
 
-1. Open `chrome://extensions/` in Chrome
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Select this folder
+1. Download or clone this repository
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable **Developer mode** (toggle in top-right corner)
+4. Click **Load unpacked**
+5. Select the folder containing this extension
 
-## Usage
+---
 
-### Popup Auto-Clicker (automatic)
+## Setup: AI Summarization
 
-No action required. When Superhuman shows a subject-line warning popup with a "SEND ANYWAY" or "SCHEDULE ANYWAY" button, the extension clicks it automatically within ~200ms.
+The Summarize feature requires an Anthropic API key. Follow these steps:
 
-**How it works:**
-- Polls the page every 150ms for the alert button (`.Alert-action.selected`)
-- When found, waits 50ms for DOM stability, then clicks
-- Enters a 3-second cooldown to prevent duplicate clicks
-- Preserves window focus after clicking
+### Step 1: Get an API Key
 
-### Gmail Filter Creation (manual trigger)
+1. Go to [console.anthropic.com](https://console.anthropic.com/)
+2. Sign up or log in
+3. Navigate to **API Keys**
+4. Create a new API key
+5. Copy the key (it starts with `sk-ant-`)
 
+### Step 2: Add the Key to the Extension
+
+1. Open [Superhuman](https://mail.superhuman.com) in Chrome
+2. Open Chrome DevTools:
+   - **Windows/Linux**: Press `F12` or `Ctrl+Shift+I`
+   - **Mac**: Press `Cmd+Option+I`
+3. Click the **Console** tab
+4. Paste this command, replacing `sk-ant-your-key-here` with your actual key:
+
+```javascript
+chrome.storage.local.set({ anthropicApiKey: 'sk-ant-your-key-here' })
+```
+
+5. Press **Enter**
+6. You should see `undefined` — this means it worked
+7. Close DevTools
+
+### Step 3: Test It
+
+1. Open any email in Superhuman
+2. Look for the **Summarize** button near the subject line (next to Copy)
+3. Click it to generate an AI summary
+
+### Troubleshooting
+
+**"API key not configured" error:**
+- Make sure you ran the command on a Superhuman tab
+- The key must start with `sk-ant-`
+- Try the setup again
+
+**To check if your key is saved:**
+```javascript
+chrome.storage.local.get('anthropicApiKey', result => console.log(result.anthropicApiKey ? 'Key is set' : 'No key found'))
+```
+
+**To remove your key:**
+```javascript
+chrome.storage.local.remove('anthropicApiKey')
+```
+
+---
+
+## Usage Guide
+
+### Summarize Button
 1. Open an email in Superhuman
-2. Trigger the extension:
-   - **Keyboard shortcut**: `Alt+G`
-   - **Toolbar button**: Click the extension icon
-3. Gmail opens in a background tab with the search pre-populated (e.g. `from:sender@example.com subject:(Meeting Notes)`)
-4. In the Gmail tab, click **Show search options** (the down-arrow in the search bar), then **Create filter** to finish setup
+2. Click the **Summarize** button (next to Copy button)
+3. A sidebar opens with two tabs:
+   - **TL;DR**: Quick 2-4 bullet summary
+   - **Key Takeaways**: Detailed analysis with response requirements, context, action items
+4. Content streams in real-time as the AI generates it
+5. Summaries are cached — clicking Summarize again reopens without regenerating
+6. Press **Escape** or click **×** to close
 
-#### Status Badge
+### Copy Button
+1. Open an email in Superhuman
+2. Click the **Copy** button
+3. Paste anywhere — HTML formatting is preserved in rich text editors like Word or Google Docs
 
-After triggering, a badge briefly appears on the toolbar icon:
+### Gmail Filter (Alt+G)
+1. Open an email in Superhuman
+2. Press **Alt+G** (or click the toolbar icon)
+3. Gmail opens with search pre-filled with sender/subject
+4. Click **Show search options** → **Create filter** to finish
 
-| Badge | Color  | Meaning                                              |
-|-------|--------|------------------------------------------------------|
-| OK    | Green  | Data extracted, Gmail opened                         |
-| ---   | Orange | No sender or subject found (email may not be open)   |
-| ERR   | Red    | Content script not loaded (not on Superhuman)        |
+### Comment Popup Blocker
+No action required. The popup is automatically hidden.
 
-### Comment Popup Blocker (automatic)
-
-No action required. The "Comment & Share Conversation" popup that normally appears when your mouse hovers near the bottom of an email thread is permanently hidden via injected CSS. The underlying `.CommentInput-container.isHidden` element is forced to `display: none` with pointer events disabled so the hover trigger never fires.
-
-**Required Superhuman setting:** For the Comment Popup Blocker to work, you must enable **"Hide comment bar"** in Superhuman's settings:
-1. Open Superhuman and press `Cmd+K` (Mac) or `Ctrl+K` (Windows)
+**Required Superhuman setting:** Enable **"Hide comment bar"** in Superhuman settings:
+1. Press `Cmd+K` (Mac) or `Ctrl+K` (Windows)
 2. Type "Settings" and select it
-3. Go to the **Advanced** section
+3. Go to **Advanced**
 4. Enable **"Hide comment bar"**
 
-Without this setting enabled, Superhuman shows a different comment UI that this extension does not block.
+### Auto-Clicker
+No action required. Confirmation popups are automatically dismissed within ~200ms.
+
+---
+
+## Privacy & Cost
+
+### Privacy
+- **Local processing**: All features except AI Summarization work entirely locally
+- **AI Summarization**: Email content is sent to Anthropic's API for processing
+- **No tracking**: This extension does not collect or transmit any analytics
+- **API key storage**: Your key is stored locally in Chrome's extension storage
+
+### Cost
+AI Summarization uses Claude 3.5 Haiku. Typical costs:
+- ~$0.01-0.03 per email summary
+- Costs are displayed in the sidebar footer
+
+---
 
 ## Debug API
 
-Open the browser DevTools console on any Superhuman page and call:
+Open DevTools console on any Superhuman page:
 
 | Function | Returns |
 |----------|---------|
-| `getExtensionErrorReports()` | Array of the last 10 tracked JS errors and promise rejections |
-| `getExtensionEnvironment()` | Current page state: URL, window size, focus info, alert elements, recent errors |
-| `checkCurrentFocus()` | Logs the current `document.hasFocus()` and `document.activeElement` |
+| `getExtensionErrorReports()` | Last 10 tracked JS errors |
+| `getExtensionEnvironment()` | Current page state and diagnostics |
+| `checkCurrentFocus()` | Logs focus state |
+
+---
 
 ## Architecture
 
 ```
-mail.superhuman.com                                          mail.google.com
-┌──────────────────────────────────────┐                    ┌──────────────────┐
-│ content.js                           │                    │ gmail-content.js │
-│                                      │                    │                  │
-│ [Auto-Clicker]                       │                    │ Reads stored     │
-│  polls 150ms → finds alert → clicks  │                    │ filter data,     │
-│                                      │                    │ builds query,    │
-│ [Filter Extraction]                  │◄── msg ──┐         │ sets location    │
-│  extractEmailData() → {from,subject} │── data ──┤         │ hash             │
-└──────────────────────────────────────┘          │         └──────────────────┘
-                                                  │                  ▲
-                                       ┌──────────┴────────┐        │
-                                       │ background.js      │        │
-                                       │ (service worker)   │        │
-                                       │                    │        │
-                                       │ stores data in     │── tab ─┘
-                                       │ chrome.storage,    │
-                                       │ opens Gmail tab    │
-                                       └───────────────────┘
+mail.superhuman.com                              mail.google.com
+┌────────────────────────────────┐              ┌──────────────────┐
+│ content.js                     │              │ gmail-content.js │
+│                                │              │                  │
+│ • Auto-Clicker (polls 150ms)   │              │ Reads stored     │
+│ • Comment Popup Blocker (CSS)  │              │ filter data,     │
+│ • Copy Button                  │              │ navigates Gmail  │
+│ • Summarize Button + Sidebar   │              │                  │
+│ • Filter Data Extraction       │              │                  │
+└────────────────────────────────┘              └──────────────────┘
+         │                                               ▲
+         │ messages                                      │
+         ▼                                               │
+┌────────────────────────────────────────────────────────┴───────┐
+│ background.js (service worker)                                 │
+│                                                                │
+│ • Orchestrates filter creation flow                            │
+│ • Streams AI summaries from Anthropic API                      │
+│ • Manages chrome.storage for data passing                      │
+└────────────────────────────────────────────────────────────────┘
 ```
 
-**Data flow (filter creation):**
-1. `content.js` extracts sender email and subject from Superhuman's DOM
-2. `background.js` stores the data in `chrome.storage.local` and opens Gmail
-3. `gmail-content.js` reads the stored data, builds a search query, and navigates Gmail's SPA router via `location.hash`
-
-**Data flow (auto-clicker):**
-1. `content.js` polls every 150ms for `.Alert-action.selected`
-2. When found with "SEND ANYWAY" or "SCHEDULE ANYWAY" text, clicks after 50ms delay
-3. 3-second cooldown prevents duplicate clicks
+---
 
 ## Project Structure
 
 ```
 ├── manifest.json        # Extension config (Manifest V3)
-├── background.js        # Service worker — orchestrates filter creation flow
-├── content.js           # Superhuman content script — auto-clicker + email extraction
-├── gmail-content.js     # Gmail content script — triggers the filter search
+├── background.js        # Service worker — filter creation + AI streaming
+├── content.js           # Superhuman — all 5 features
+├── gmail-content.js     # Gmail — filter search navigation
 ├── tests/
-│   └── content.test.js  # Unit tests for content script logic
+│   └── content.test.js  # Unit tests
 └── icons/
     ├── icon16.png
     ├── icon48.png
     └── icon128.png
 ```
 
+---
+
 ## Permissions
 
-| Permission  | Why                                                        |
-|-------------|------------------------------------------------------------|
-| `activeTab` | Send messages to the active Superhuman tab                 |
-| `storage`   | Pass extracted data from Superhuman script to Gmail script |
+| Permission | Why |
+|------------|-----|
+| `activeTab` | Send messages to active Superhuman tab |
+| `storage` | Store API key and pass data between scripts |
+| `host_permissions` | Connect to Anthropic API for summarization |
 
-No host permissions, no network requests, no data leaves the browser.
+---
 
-## Technical Notes
+## Development
 
-- **DOM selectors are fragile**: `.ThreadPane-subject`, `.ContactPane-email`, and `.Alert-action.selected` are discovered via DOM inspection and may break if Superhuman updates their UI.
-- **Gmail search hash route**: `#search/` is a stable part of Gmail's SPA router.
-- **Filter data lifecycle**: Extract → Store → Read → Delete (all local, immediate cleanup).
-- **Error buffer**: Rolling buffer of the last 10 errors, kept in memory only (lost on page reload).
-- **Focus preservation**: After auto-clicking, the extension monitors for focus loss and attempts `window.focus()` to restore it.
+```bash
+npm install    # Install test dependencies
+npm test       # Run unit tests
+```
+
+---
+
+## License
+
+MIT
