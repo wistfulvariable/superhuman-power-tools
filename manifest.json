@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Superhuman Power Tools",
-  "version": "2.0",
-  "description": "Auto-clicks SEND ANYWAY popups and one-click Gmail filter creation for Superhuman",
+  "version": "2.1",
+  "description": "Auto-clicks SEND ANYWAY popups, Gmail filter creation, and AI email summarization for Superhuman",
   "permissions": ["activeTab", "storage"],
+  "host_permissions": ["https://api.anthropic.com/*"],
   "commands": {
     "create-filter": {
       "suggested_key": {
