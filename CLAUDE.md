@@ -75,6 +75,10 @@ Falls back to `navigator.clipboard.writeText()` if `ClipboardItem` isn't support
 - **No-animation finalization**: `.shpt-paragraph-final` class for final content (prevents flash at end)
 - **Tab state tracking**: `tabPartialContent` object stores streaming content per tab for tab-switching
 - **Persistent cache**: Summaries stored in `chrome.storage.local` keyed by email subject, survives page refresh
+- **Fast-stream fallback**: When a stream completes before any throttled DOM update fires (common with short TL;DR responses), the `done` handler detects missing `streamingState` and renders directly via `renderMarkdown()` instead of relying on the block-based renderer
+- **`streamDone` guard**: Each stream sets a `streamDone` flag on completion to prevent pending `setTimeout` callbacks from the throttle from corrupting already-finalized content
+- **Service worker keepalive**: `background.js` uses a periodic `chrome.storage.local.get()` heartbeat (every 20s) while streams are active to prevent MV3 service worker termination; reference-counted via `activeStreams` so the interval stops when all streams complete
+- **Silent disconnect recovery**: `port.onDisconnect` in content.js shows an error message whenever the tab received no content, even if `chrome.runtime.lastError` is unset (covers service worker idle termination)
 
 ## Conventions
 - Manifest V3 only (no background pages, service workers only)

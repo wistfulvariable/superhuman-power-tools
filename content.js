@@ -1559,11 +1559,12 @@ function startStreamingSummary(emailContent, tabId) {
     let fullText = "";
     let updatePending = false;
     let lastUpdateTime = 0;
+    let streamDone = false; // Guard against late throttled updates after "done"
     const UPDATE_INTERVAL = 100; // Minimum ms between DOM updates
 
     // Throttled update function for smoother rendering
     function scheduleUpdate() {
-      if (updatePending) return;
+      if (updatePending || streamDone) return;
 
       const now = Date.now();
       const timeSinceLastUpdate = now - lastUpdateTime;
@@ -1579,6 +1580,7 @@ function startStreamingSummary(emailContent, tabId) {
         updatePending = true;
         setTimeout(() => {
           updatePending = false;
+          if (streamDone) return; // Stream finished while waiting
           lastUpdateTime = Date.now();
           if (tabId === currentTab) {
             updateTabContent(tabId, fullText, true);
@@ -1595,6 +1597,7 @@ function startStreamingSummary(emailContent, tabId) {
         scheduleUpdate();
       } else if (msg.type === "done") {
         // Mark streaming complete
+        streamDone = true; // Prevent any pending throttled updates from firing
         tabStreaming[tabId] = false;
         delete tabPartialContent[tabId]; // Clean up partial tracking
 
@@ -1613,10 +1616,19 @@ function startStreamingSummary(emailContent, tabId) {
           tabBtnDone.textContent = tab.label;
         }
 
-        // Just clean up streaming artifacts - don't re-render
-        // The throttled updates already rendered all content
+        // Finalize the DOM for the completed tab
         if (tabId === currentTab) {
-          finalizeStreamingContent(tabId);
+          // If streaming state was never initialized (stream completed before
+          // any throttled DOM update fired), render the full content directly.
+          // Otherwise just finalize any remaining partial blocks.
+          if (!streamingState[tabId]) {
+            const body = document.querySelector(".shpt-sidebar-body");
+            if (body) {
+              body.innerHTML = renderMarkdown(fullText);
+            }
+          } else {
+            finalizeStreamingContent(tabId);
+          }
         } else {
           delete streamingState[tabId];
         }
@@ -1667,11 +1679,18 @@ function startStreamingSummary(emailContent, tabId) {
     port.onDisconnect.addListener(() => {
       // Mark streaming complete
       tabStreaming[tabId] = false;
+      delete tabPartialContent[tabId];
 
-      if (chrome.runtime.lastError && tabId === currentTab) {
+      const hasContent = tabContents[tabId] && tabContents[tabId].length > 0;
+
+      // Show error if this tab never received content (silent disconnect)
+      if (!hasContent && tabId === currentTab) {
+        const errorMsg = chrome.runtime.lastError
+          ? chrome.runtime.lastError.message
+          : "Background service worker disconnected. Try clicking Summarize again.";
         const body = document.querySelector(".shpt-sidebar-body");
         if (body) {
-          body.innerHTML = `<div class="shpt-sidebar-error">Connection error: ${escapeHtml(chrome.runtime.lastError.message)}</div>`;
+          body.innerHTML = `<div class="shpt-sidebar-error">Connection error: ${escapeHtml(errorMsg)}</div>`;
         }
       }
 

@@ -223,6 +223,28 @@ async function updateUsageStats(inputTokens, outputTokens, cost) {
   return usageStats;
 }
 
+// Keepalive: prevent service worker termination during active streaming.
+// Manifest V3 service workers can be killed after 30s of "inactivity".
+// A periodic chrome.storage.local.get acts as a heartbeat that resets the timer.
+let keepaliveInterval = null;
+let activeStreams = 0;
+
+function startKeepalive() {
+  activeStreams++;
+  if (keepaliveInterval) return; // Already running
+  keepaliveInterval = setInterval(() => {
+    chrome.storage.local.get("keepalive"); // Lightweight API call to reset idle timer
+  }, 20000); // Every 20 seconds
+}
+
+function stopKeepalive() {
+  activeStreams = Math.max(0, activeStreams - 1);
+  if (activeStreams === 0 && keepaliveInterval) {
+    clearInterval(keepaliveInterval);
+    keepaliveInterval = null;
+  }
+}
+
 // Streaming summarization via port connection
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "summarize-stream") return;
@@ -230,10 +252,14 @@ chrome.runtime.onConnect.addListener((port) => {
   port.onMessage.addListener(async (msg) => {
     if (msg.action !== "summarizeEmailStreaming") return;
 
+    console.log("[SHPT] Streaming request received for:", msg.promptType);
+    startKeepalive();
+
     const { anthropicApiKey } = await chrome.storage.local.get("anthropicApiKey");
 
     if (!anthropicApiKey) {
       port.postMessage({ type: "error", error: "API key not configured. Open DevTools console and run: chrome.storage.local.set({ anthropicApiKey: 'your-key-here' })" });
+      stopKeepalive();
       return;
     }
 
@@ -260,9 +286,13 @@ chrome.runtime.onConnect.addListener((port) => {
         })
       });
 
+      console.log("[SHPT] API response status:", response.status);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error("[SHPT] API error:", response.status, errorData);
         port.postMessage({ type: "error", error: `API error (${response.status}): ${errorData.error?.message || response.statusText}` });
+        stopKeepalive();
         return;
       }
 
@@ -321,7 +351,10 @@ chrome.runtime.onConnect.addListener((port) => {
         }
       });
     } catch (e) {
+      console.error("[SHPT] Streaming error:", e);
       port.postMessage({ type: "error", error: `Network error: ${e.message}` });
+    } finally {
+      stopKeepalive();
     }
   });
 });
